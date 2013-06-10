@@ -1,4 +1,5 @@
 from Tkinter import *
+import tkMessageBox
 
 #refs:
 #http://effbot.org/zone/tkinter-scrollbar-patterns.htm
@@ -7,74 +8,80 @@ from Tkinter import *
 
 class GUIManager():
 	def __init__(self):
-		self.myParent = Tk() 
-		self.wire_up()
+		self.__myParent = Tk() 
+		self.__wire_up()
 
-	def wire_up(self):
+	def __wire_up(self):
 		#self.myParent.geometry("640x400")
-		self.build_layout()
+		self.__build_layout()
 
 		#TODO REMOVE ME
-		self.counter = 0
-		self.myParent.after(1000, self.gen_info)
+		self.__counter = 0
+		self.__myParent.after(1000, self.__gen_info)
 
   		print "enteting main loop"
-  		self.myParent.mainloop()
+  		try:
+  			self.__myParent.mainloop()
+  		except:
+  			print "exit exception" 
+
   		print "leaving main loop"
 
-  	def gen_info(self):
+  	def __gen_info(self):
   		try:
-  			self.counter= self.counter +1
-  			self.append_Info(100*"TEST_INFO ")
-  			self.append_Info(self.counter)
+  			self.__counter= self.__counter +1
+  			self.__append_Info(100*"TEST_INFO ")
+  			self.__append_Info(self.__counter)
   		finally:
-  			self.myParent.after(1000, self.gen_info)
+  			self.__myParent.after(1000, self.__gen_info)
 
 
 
-  	def append_Info(self, info):
-		self.infoText.config(state=NORMAL)
-		self.infoText.insert(END, info)
-		self.infoText.see(END)
-		self.infoText.config(state=DISABLED)
+  	def __append_Info(self, info):
+		self.__infoText.config(state=NORMAL)
+		self.__infoText.insert(END, info)
+		self.__infoText.see(END)
+		self.__infoText.config(state=DISABLED)
 
 
-	def build_layout(self):
+	def __build_layout(self):
 		
-		self.scrollbar = Scrollbar(self.myParent)
+		#widgets creation
+		self.__scrollbar = Scrollbar(self.__myParent)
 		
-		self.infoText = Text(
-			self.myParent
+		self.__infoText = Text(
+			self.__myParent
 			,wrap=WORD
-			,yscrollcommand=self.scrollbar.set
+			,yscrollcommand=self.__scrollbar.set
 			,selectborderwidth=1
 			,background="gray"
 			,state = DISABLED)
 
-		self.scrollbar.config(
-			command=self.infoText.yview
+		self.__scrollbar.config(
+			command=self.__infoText.yview
 			,borderwidth=1
 			,width=10
 			)
 
 		#buttons
-		button_width = 6      ### (1)
+		button_width = 8      ### (1)
 		button_padx = "2m"    ### (2)
 		button_pady = "1m"    ### (2)
 
-		self.button1 = Button(self.myParent, command=self.button1Click)
-		self.button1.configure(text="OK", fg="green",bg= "blue")
-		self.button1.focus_force()       
-		self.button1.configure( 
-			width=button_width,  ### (1)
-			padx=button_padx,    ### (2) 
-			pady=button_pady     ### (2)
+		self.__button1 = Button(self.__myParent)
+		self.__button1.focus_force()
+		self.__button1.configure( 
+			text="Continue"
+			,fg="green"
+			,bg= "blue"
+			,width=button_width  ### (1)
+			,padx=button_padx    ### (2) 
+			,pady=button_pady    ### (2)
+			,state = DISABLED
 			)
 
-		self.button1.bind("<Return>", self.button1Click_a)  
-		
-		self.button2 = Button(self.myParent, command=self.button2Click)
-		self.button2.configure(
+		self.__button2 = Button(self.__myParent)
+		self.__button2.configure(
 		    text="Cancel",
 		    background="red",
 			width=button_width,  ### (1)
@@ -82,49 +89,42 @@ class GUIManager():
 			pady=button_pady     ### (2)
 			)
 
-		self.button2.bind("Return", self.button2Click_a) 
+		#set layout
+		self.__infoText.grid(row=0, column=0, columnspan=2, stick=W+N)
+		self.__scrollbar.grid(row=0, column=2, stick=E+N+S)
+
+		self.__button2.grid(row=1, column=1, stick=E+S)
+		self.__button1.grid(row=1, column=0, stick=W+S)
+
+		#bind events
+		self.__button1.configure(command=self.__confirmationCallBack)
+		self.__button2.configure(command=self.__terminateCallback)
+		self.__button1.bind("<Return>", self.__button1Click_a) #TODO REMOVE
+		self.__button1.bind("<Escape>", self.__terminateCallback)
+		self.__myParent.protocol("WM_DELETE_WINDOW", self.__terminateCallback)
 		
-		self.infoText.grid(row=0, column=0, columnspan=2, stick=W+N)
-		self.scrollbar.grid(row=0, column=2, stick=E+N+S)
 
-		self.button2.grid(row=1, column=1, stick=E+S)
-		self.button1.grid(row=1, column=0, stick=W+S)
+	def __toggle_buttonVisibility(self):
+		self.__button1.configure(state=NORMAL)
+		
 
-		self.show_buttons()	
-
-	def show_buttons(self):
-		self.bVisible = 1
-		self.button2.grid()
-		self.button1.grid()
-
-	def hide_buttons(self):
-		self.bVisible = 0
-		self.button2.grid_remove()
-		self.button1.grid_remove()
-
-	def toggle_buttonVisibility(self):
-		if self.bVisible == 1:
-			self.hide_buttons()
+	def __confirmationCallBack(self):
+		print "button1Click just called"
+		if tkMessageBox.askokcancel(":)", "Do you really wish to Continue?"):
+			print "you really continued"
 		else:
-			self.show_buttons()
-
-	def button1Click(self):      
-		if self.button1["foreground"] != "yellow":  
-			self.button1["foreground"] = "yellow"
-		else:
-			self.button1["foreground"] = "green"
+			print "you are a chicken"
 	
-	def button2Click(self): 
-		self.myParent.destroy()     
-		
-	def button1Click_a(self, event): 
+	def __terminateCallback(self, aux=None): 
+		print "cancelExecution just called"
+		self.__myParent.destroy()     
+
+	#TODO REMOVE	
+	def __button1Click_a(self, event): 
 		print "button1Click_a just called" 
-		self.append_Info ("TEST_ASYNC_INFO")
-		self.toggle_buttonVisibility()
-				
-	def button2Click_a(self, event):
-		print "button2Click_a just called"  
-		self.button2Click() 
+		self.__append_Info ("TEST_ASYNC_INFO")
+		self.__toggle_buttonVisibility()
+
 			
 gui = GUIManager()
 
