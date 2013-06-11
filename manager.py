@@ -14,7 +14,6 @@ class Plugin():
 
 	def run(self):
 		msg = "Default plugin id:" + str(self.id) + " run call executed -- Does nothing"
-		print msg
 		return RunState.SUCCESS, msg
 
 class DebugPlugin(Plugin):
@@ -33,7 +32,6 @@ class PluginManager(threading.Thread):
 		threading.Thread.__init__(self)
 		self.__plugins = plugins
 		self.__gui = gui
-		self.__run = False
 		self.__info_map = {
 		RunState.WARNING: guiM.InfoFormat.CONFIRMATION
 		,RunState.FAILED: guiM.InfoFormat.ERROR
@@ -56,7 +54,6 @@ class PluginManager(threading.Thread):
 
 
 	def __run_plugin(self, pg):
-		result = False
 		try:
 			prefix = "Plugin-{id}: ".format(id=pg.id)
 			self.__gui.updateUserInfo(prefix+"Starting...\n")
@@ -73,7 +70,9 @@ class PluginManager(threading.Thread):
 			if state == RunState.WARNING:
 		 		result = self.__gui.waitUserConfirmation()
 		except guiM.GUITerminating:
-		 	print "gui terminating"
+		 	print "Gui terminating Exception caught, Terminate"
+		 	result = False
+		
 		return result
 
 def main():
