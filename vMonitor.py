@@ -71,7 +71,7 @@ class vModuleGit(vModule):
         #TODO how to detect erros here???
         
 
-class MyApp(vModuleGit):
+class TestModule(vModuleGit):
     def __init__(self):
         self.files2monitor = ["vModule_test/testFile1.txt"
                               ,"vModule_test/testFile2.txt"
@@ -88,7 +88,7 @@ class MyApp(vModuleGit):
         return 3
 
 def _test():
-    ret = MyApp().run()
+    ret = TestModule().run()
     return ret
 
 
