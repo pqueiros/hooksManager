@@ -1,5 +1,6 @@
 
 import os 
+import sys
 import subprocess
 
 msg = \
@@ -30,11 +31,10 @@ if not found:
 	me.write("\n" + cmd + "exit(3)")
 	me.flush()
 	print "cmd written :)"
-	retcode = subprocess.call("python " + __file__, shell=True)
+	#retcode = subprocess.call("python " + __file__, shell=True)
+	retcode = subprocess.call([sys.executable, __file__])
 	print "2nd run return code:", retcode
 
 me.close()
 
 ####END OF CODE
-print msg
-exit(3)
