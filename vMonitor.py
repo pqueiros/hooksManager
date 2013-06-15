@@ -84,6 +84,7 @@ class MyApp(vModuleGit):
     def main_code(self):
         print "My main code executed!!! :)"
         print "and new code added too :)"
+        print "and yet another code of line added :)"
         return 3
 
 def _test():
