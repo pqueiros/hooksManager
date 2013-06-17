@@ -83,14 +83,13 @@ class GUIManager():
 
     def __monitor(self):
         try:
+            self.__myParent.update_idletasks()
+
             data = self.__in_queue.get_nowait()
             if len(data) == 2:
                 self.__handle_info_cmd(data)
             else:
                 self.__handle_control_cmd(data[0])
-
-            # not really sure why, but safe then sorry
-            self.__myParent.update_idletasks()
 
         except Queue.Empty:
             pass
