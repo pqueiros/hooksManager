@@ -65,6 +65,7 @@ class GUIManager():
         self.__out_queue.put(data, timeout=1)
 
     def __stop(self):
+        print "gui stopping"
         self.__myParent.destroy() 
 
     def __init__(self):
