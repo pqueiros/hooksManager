@@ -67,7 +67,13 @@ class PluginManager(threading.Thread):
 			prefix = "Plugin-{id}: ".format(id=pg.id)
 			self.__gui.updateUserInfo(prefix+"Starting...\n")
 			
-			state, pg_out = pg.run()	
+			state, pg_out = pg.run()
+
+			print 5*"*", prefix, "BEGIN", 5*"*"
+			print prefix
+			print "Reported:", state
+			print "Output:", pg_out
+			print 5*"*", prefix, "END", 5*"*"
 
 			info = prefix + str(pg_out) + "\n"	
 			self.__gui.updateUserInfo(info, self.__info_map[state])
