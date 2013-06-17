@@ -1,6 +1,7 @@
 import guiManager as guiM
 import threading
 import time
+import sys
 
 class RunState:
 	WARNING = "warning"
@@ -37,6 +38,7 @@ class PluginManager(threading.Thread):
 		,RunState.FAILED: guiM.InfoFormat.ERROR
 		,RunState.SUCCESS: guiM.InfoFormat.NONE
 		}
+		self.ret_code = 0
 
 	def run(self):
 		interrupted = False
@@ -51,6 +53,8 @@ class PluginManager(threading.Thread):
 			self.__gui.stop()
 			print "gui stopped, run says goodby"
 		print "run Done"
+
+		self.ret_code = "Hello"
 
 
 	def __run_plugin(self, pg):
@@ -111,8 +115,8 @@ def main():
 	gui.main_loop()
 
 	plugin_manager.join()
-
-	print "Done"
+	print "Done:", plugin_manager.ret_code
+	return plugin_manager.ret_code
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
