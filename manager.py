@@ -4,9 +4,9 @@ import time
 import sys
 
 class RunState:
-	WARNING = "warning"
-	FAILED  = "failed"
-	SUCCESS = "success"
+	WARNING = "Warning"
+	FAILED  = "Failed"
+	SUCCESS = "Success"
 
 class Plugin():
 	
