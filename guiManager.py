@@ -54,14 +54,14 @@ class GUIManager():
         self.__send_in_queue_message([CMD.STOP])
 
     def __send_in_queue_message(self, data):
-        if self.__in_queue.full():
-            print "WARNING IN queue full"
+        #if self.__in_queue.full():
+        #    print "WARNING IN queue full"
         self.__in_queue.put(data, timeout=1)
     
 
     def __send_out_queue_message(self, data):
-        if self.__out_queue.full():
-            print "WARNING OUT queue full"
+        #if self.__out_queue.full():
+        #    print "WARNING OUT queue full"
         self.__out_queue.put(data, timeout=1)
 
     def __stop(self):
