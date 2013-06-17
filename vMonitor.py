@@ -73,9 +73,10 @@ class vModuleGit(vModule):
 
 class TestModule(vModuleGit):
     def __init__(self):
-        self.files2monitor = ["vModule_test/testFile1.txt"
-                              ,"vModule_test/testFile2.txt"
-                              ,"vModule_test/testFile3.txt"
+        self.files2monitor = ["vModule_test"
+                              #,"vModule_test/testFile2.txt"
+                              #,"vModule_test/testFile2.txt"
+                              #,"vModule_test/testFile3.txt"
                               #,"vModule_test/testFile4.txt"
                               ,__file__
                               ]
