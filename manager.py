@@ -3,6 +3,13 @@ import threading
 import time
 import sys
 
+ERROR_EXIT_MSG=\
+"""
+PluginManager exited has been interrupted,
+triggered by user input or a run time error.
+"""
+
+
 class RunState:
 	WARNING = "Warning"
 	FAILED  = "Failed"
