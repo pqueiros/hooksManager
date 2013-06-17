@@ -38,7 +38,7 @@ class PluginManager(threading.Thread):
 		,RunState.FAILED: guiM.InfoFormat.ERROR
 		,RunState.SUCCESS: guiM.InfoFormat.NONE
 		}
-		self.ret_code = 0
+		self.ret_code = ERROR_EXIT_MSG
 
 	def run(self):
 		interrupted = False
@@ -51,11 +51,9 @@ class PluginManager(threading.Thread):
 			print "Everything done, sleep a bit & stop Gui"
 			time.sleep(5)
 			self.__gui.stop()
-			print "gui stopped, run says goodby"
+			print "gui stopped, PluginManager_run says goodby"
+			self.ret_code = 0
 		print "run Done"
-
-		self.ret_code = "Hello"
-
 
 	def __run_plugin(self, pg):
 		try:
@@ -118,7 +116,7 @@ def main():
 	gui.main_loop()
 
 	plugin_manager.join()
-	print "Done:", plugin_manager.ret_code
+	print "Done:"
 	return plugin_manager.ret_code
 
 if __name__ == '__main__':
