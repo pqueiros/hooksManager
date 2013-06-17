@@ -56,7 +56,7 @@ class PluginManager(threading.Thread):
 
 		if not interrupted:
 			print "Everything done, sleep a bit & stop Gui"
-			time.sleep(5)
+			time.sleep(1)
 			self.__gui.stop()
 			print "gui stopped, PluginManager_run says goodby"
 			self.ret_code = 0
