@@ -74,7 +74,10 @@ class PluginManager(threading.Thread):
 			if state == RunState.WARNING:
 		 		result = self.__gui.waitUserConfirmation()
 		except guiM.GUITerminating:
-		 	print "Gui terminating Exception caught, Terminate"
+		 	msg = "# Gui terminating Exception caught, Terminate #"
+		 	print len(msg)*"#"
+		 	print msg
+		 	print len(msg)*"#"
 		 	result = False
 		
 		return result
