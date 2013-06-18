@@ -1,27 +1,18 @@
-import guiManager
-import threading
-import time
 import sys
+import time
+import threading
+import guiManager
+from pluginTraits import *
+
+if __name__ == '__main__':
+    import examplePlugins
+
+
 
 ERROR_EXIT_MSG=\
 """
 PluginManager exited, triggered by user input or a run time error.
 """
-
-
-class RunState:
-    WARNING = "Warning"
-    FAILED  = "Failed"
-    SUCCESS = "Success"
-
-class Plugin():
-    
-    def __init__(self, id):
-        self.id = id
-
-    def run(self):
-        msg = "Default plugin id:" + str(self.id) + " run call executed -- Does nothing"
-        return RunState.SUCCESS, msg
 
 
 
@@ -74,7 +65,7 @@ class PluginManager(threading.Thread):
 
             if state == RunState.WARNING:
                 result = self.__gui.waitUserConfirmation()
-        except guiM.GUITerminating:
+        except guiManager.GUITerminating:
             msg = "# Gui terminating Exception caught, Terminate #"
             print len(msg)*"#"
             print msg
@@ -86,24 +77,19 @@ class PluginManager(threading.Thread):
 
 ################### TEST CODE ####
 
-class DebugPlugin(Plugin):
-    def __init__(self, id, returnCode, message):
-        Plugin.__init__(self,id)
-        self.__retCode = returnCode
-        self.__msg = message
 
-    def run(self):
-        msg = "DebugPlugin:\n" + self.__msg 
-        return self.__retCode,  msg
 
-__conf_plugin = DebugPlugin("confirmation_plugin", RunState.WARNING, \
+
+
+def __test_main(use_fail_plugin = False):
+    __conf_plugin = examplePlugins.DebugPlugin("confirmation_plugin", RunState.WARNING, \
 """
 This should have different color
 please Cancel to stop or Confirm to continue
 """
 )
 
-__failed_plugin = DebugPlugin("Failure_plugin", RunState.FAILED, \
+    __failed_plugin = examplePlugins.DebugPlugin("Failure_plugin", RunState.FAILED, \
 """
 This should have different color
 plugin failed execution and user can only press cancel
@@ -112,16 +98,14 @@ No other plugin is executed after a failed plugin
 """
 )
 
-def __test_main(use_fail_plugin = False):
-
     #test setup
     plugins = []
     for id in range(1,20):
-        plugins.append(Plugin(id))
+        plugins.append(examplePlugins.Plugin(id))
 
     plugins.append(__conf_plugin)
 
-    plugins.append(Plugin("Last_plugin"))
+    plugins.append(examplePlugins.Plugin("Last_plugin"))
 
     if use_fail_plugin:
         plugins.append(__failed_plugin)
