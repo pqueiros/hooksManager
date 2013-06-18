@@ -14,66 +14,18 @@ class InfoFormat:
     NONE         = "inf_n"
 
 class CMD:
-    RESUME= 10
-    STOP= 11
+    RESUME= "R"
+    STOP= "S"
 
 class GUITerminating(Exception):
     pass
 
-class GUIManager():
-
-    """
-    Gui main loop function must be started by the main thread
-    caller executed gui until gui is terminated
-    """
-    def main_loop(self):
-        print "entering main loop"
-        self.__myParent.mainloop()
-        print "leaving main loop"
-
-    def waitUserConfirmation(self):
-        cmd = self.__out_queue.get()
-        return cmd == CMD.RESUME
-
-    def waitUserCancel(self,):
-        cmd = self.__out_queue.get()
-        return cmd == CMD.STOP
-
-    def updateUserInfo(self, info, format=InfoFormat.NONE):
-        if self.__acceptData:
-            self.__send_in_queue_message([info, format])
-        else:
-            print "gui shutting down, skipping send data"
-            raise GUITerminating
-
-    """
-    Gui stop function to be called by external
-    worker thread
-    """
-    def stop(self):
-        self.__send_in_queue_message([CMD.STOP])
-
-    def __send_in_queue_message(self, data):
-        #if self.__in_queue.full():
-        #    print "WARNING IN queue full"
-        self.__in_queue.put(data, timeout=1)
-    
-
-    def __send_out_queue_message(self, data):
-        #if self.__out_queue.full():
-        #    print "WARNING OUT queue full"
-        self.__out_queue.put(data, timeout=1)
-
-    def __stop(self):
-        print "gui stopping"
-        self.__myParent.destroy() 
-
-    def __init__(self):
-        self.__acceptData = True
-        self.__in_queue = Queue.Queue(5)
-        self.__out_queue = Queue.Queue(1)
+class GUI():
+    def __init__(self, periodic_callback, notifications_callback):
         self.__myParent = Tk()
         self.__monitor_period = 10
+        self.__periodic_cb = periodic_callback
+        self.__gui_not_cb = notifications_callback
        
         #self.myParent.geometry("640x400")
         self.__build_layout()
@@ -81,38 +33,30 @@ class GUIManager():
         #schedule monitor for the first time
         self.__myParent.after(self.__monitor_period, self.__monitor)
 
-    def __monitor(self):
-        try:
-            self.__myParent.update_idletasks()
+    def main_loop(self):
+        self.__myParent.mainloop()
 
-            data = self.__in_queue.get_nowait()
-            if len(data) == 2:
-                self.__handle_info_cmd(data)
-            else:
-                self.__handle_control_cmd(data[0])
+    def stop(self):
+        print "gui stopping"
+        self.__myParent.destroy()
 
-        except Queue.Empty:
-            pass
-        finally:
-            #reschedule monitor
-            self.__myParent.after(self.__monitor_period, self.__monitor)
-
-    def __handle_control_cmd(self, cmd):
-        if cmd == CMD.STOP:
-            self.__stop()
-
-    def __handle_info_cmd(self, data):
-        [info, format] = data
-        
+    def display_data(self, text, format):
         if format == InfoFormat.CONFIRMATION:
             self.__activateConfirmationButton()
         
         #write info to text box
         self.__infoText.config(state=NORMAL)
-        self.__infoText.insert(END, str(info),format)
+        self.__infoText.insert(END, str(text),format)
         self.__infoText.see(END)
         self.__infoText.config(state=DISABLED)
 
+    def __monitor(self):
+        self.__myParent.update_idletasks()
+        try:
+            self.__periodic_cb()
+        finally:
+            #reschedule monitor
+            self.__myParent.after(self.__monitor_period, self.__monitor)
 
     def __build_layout(self):
         
@@ -181,31 +125,96 @@ class GUIManager():
 
     def __disableConfirmationButton(self):
         self.__button1.configure(state=DISABLED)
-        
+    
     def __confirmationCallBack(self):
-        print "button1Click just called"
         if tkMessageBox.askokcancel(":)", "Do you really wish to Continue?"):
             print "pop-up confirmed, here we go..."
             self.__disableConfirmationButton()
-            self.__send_out_queue_message(CMD.RESUME)
+            self.__gui_not_cb(CMD.RESUME)
         else:
             print "pop-up canceled, do nothing"
-    
+
     def __terminateCallback(self, aux=None): 
         print "cancelExecution triggered"
-        self.__send_out_queue_message(CMD.STOP)
-        self.__acceptData = False
-        print "unblock feeders"
+        self.__gui_not_cb(CMD.STOP)
+        self.stop()
+
+
+class GuiManager():
+    def __init__(self):
+        self.__gui = GUI(self.gui_periodic_callback, self.gui_notifications_callback)
+        self.__acceptData = True
+        self.__in_queue = Queue.Queue(5)
+        self.__out_queue = Queue.Queue(1)
+
+    def main_loop(self):
+        print "entering main loop"
+        self.__gui.main_loop()
+        print "leaving main loop"
+
+    def waitUserConfirmation(self):
+        cmd = self.__out_queue.get()
+        return cmd == CMD.RESUME
+
+    def waitUserCancel(self,):
+        cmd = self.__out_queue.get()
+        return cmd == CMD.STOP
+
+    def updateUserInfo(self, info, format=InfoFormat.NONE):
+        if self.__acceptData:
+            self.__send_in_queue_message([info, format])
+        else:
+            print "gui shutting down, skipping send data"
+            raise GUITerminating
+
+    """
+    Gui stop function to be called by external
+    worker thread
+    """
+    def stop(self):
+        self.__send_in_queue_message([CMD.STOP])
+
+
+    #GUI callbacks
+    def gui_periodic_callback(self):
         try:
-            self.__in_queue.get_nowait()
+            data = self.__in_queue.get_nowait()
+            if len(data) == 2: #gui display request
+                [info, format] = data
+                self.__gui.display_data(info, format)
+            elif len(data) == 1: #gui command
+                print "cmd received:", data
+                if data[0] == CMD.STOP:
+                    self.__gui.stop()
+            else:
+                raise Exception("Invalid data received data:{0}".format(data))
         except Queue.Empty:
             pass
-        self.__stop()
+
+    def gui_notifications_callback(self, cmd):
+        self.__send_out_queue_message(cmd)
+        if cmd == CMD.STOP:
+            self.__acceptData = False
+            print "unblock feeders"
+            try:
+                self.__in_queue.get_nowait()
+            except Queue.Empty:
+                pass
+
+    def __send_in_queue_message(self, data):
+        #if self.__in_queue.full():
+        #    print "WARNING IN queue full"
+        self.__in_queue.put(data, timeout=1)
+    
+    def __send_out_queue_message(self, data):
+        #if self.__out_queue.full():
+        #    print "WARNING OUT queue full"
+        self.__out_queue.put(data, timeout=1)
 
 
-
+################### TEST CODE ####
 def __test_gui_mananger():
-    gui = GUIManager()
+    gui = GuiManager()
     gui.main_loop()
     print "Done"
 
